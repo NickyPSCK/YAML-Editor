@@ -4,33 +4,43 @@
 # https://stackoverflow.com/questions/59594483/tkinter-treeview-expand-all-child-nodes
 # https://pythonassets.com/posts/drop-down-list-combobox-in-tk-tkinter/
 
+import copy
+from typing import Optional, List
+
 import tkinter as tk
 from tkinter import ttk
-import copy
+
 from config_loader import BaseConfigLoader
 from dict_reader import DictRecursivelyReader
 
 
-class GUI:
-    def __init__(self, config_dict):
+class ConfigEditor:
+    def __init__(self,
+                 config_dir: str,
+                 config_file_names: Optional[List[str]] = None,
+                 default_config_dir: Optional[str] = None,
+                 default_config_file_names: Optional[List[str]] = None):
 
-        self.config_dict = config_dict
+        self.config_dict = BaseConfigLoader(config_dir=config_dir,
+                                            config_file_names=config_file_names).load()
+
+        if default_config_dir is not None:
+            self.default_config_dict = BaseConfigLoader(config_dir=default_config_dir,
+                                                        config_file_names=default_config_file_names).load()
+        else:
+            self.default_config_dict = None
+
         self.edited_config_dict = copy.deepcopy(self.config_dict)
-        # -------------------------------------------------------------------
+
         # Constants
-        # -------------------------------------------------------------------
         self.values_for_key = ['', 'key']
         self.list_key_prefix = '-LIST-: '
         self.list_value_for_cbb_boolean = [True, False]
 
-        # -------------------------------------------------------------------
-        # STATE
-        # -------------------------------------------------------------------
-        # self.__selected_key = None
-        # self.__selected_value = None
+        self._create_gui()
+        self._init_branch()
 
-        # -------------------------------------------------------------------
-
+    def _create_gui(self):
         self.app = tk.Tk()
         self.app.title('YAML Editor V.1.0.0')
         self.app.geometry('2000x500')
@@ -104,6 +114,11 @@ class GUI:
                                         values=self.list_value_for_cbb_boolean,
                                         state='disabled')
 
+        self.lab_warning = tk.Label(self.frm_edit,
+                                    text='',
+                                    fg='#f00',
+                                    anchor=tk.CENTER)
+
         self.btn_change_value = tk.Button(self.frm_edit,
                                           text='Change Value',
                                           width=100,
@@ -125,163 +140,42 @@ class GUI:
                                   state='active',
                                   command=self._action_btn_save)
 
+        self.btn_undo_all = tk.Button(self.frm_edit,
+                                      text='Undo all changed',
+                                      width=100,
+                                      height=2,
+                                      state='active',
+                                      command=self._action_btn_undo_all)
+
         self.btn_reset = tk.Button(self.frm_edit,
-                                   text='Reset',
+                                   text='Load default config',
                                    width=100,
                                    height=2,
                                    state='active',
                                    command=self._action_btn_reset)
+
+        if self.default_config_dict is None:
+            self.btn_reset.configure(state='disabled')
 
         self.lab_select_status.pack(side=tk.TOP, fill=tk.X)
         self.lab_value.pack(side=tk.TOP, fill=tk.X)
         self.rbt_specified_val.pack(side=tk.TOP, anchor=tk.W)
         self.rbt_specified_none.pack(side=tk.TOP, anchor=tk.W)
         self.txt_value.pack(side=tk.TOP, fill=tk.X)
+
         self.cbb_boolean.pack(side=tk.TOP, fill=tk.X)
+        self.lab_warning.pack(side=tk.TOP, fill=tk.X)
+
+        self.btn_change_value.pack(side=tk.TOP, fill=tk.X)
+        self.btn_clear.pack(side=tk.TOP, fill=tk.X)
+
         self.btn_reset.pack(side=tk.BOTTOM, fill=tk.X)
+        self.btn_undo_all.pack(side=tk.BOTTOM, fill=tk.X)
         self.btn_save.pack(side=tk.BOTTOM, fill=tk.X)
-        self.btn_clear.pack(side=tk.BOTTOM, fill=tk.X)
-        self.btn_change_value.pack(side=tk.BOTTOM, fill=tk.X)
 
-        # -------------------------------------------------------------------
-
-        self._init_branch()
-
-    def _init_branch(self):
-        rr = DictRecursivelyReader()
-        self.processed_config_dict = dict()
-        for file_name in config_dict:
-            self.processed_config_dict[file_name] = rr.read(self.config_dict[file_name])
-            self._add_brunch(root_name=file_name,
-                             config_list=self.processed_config_dict[file_name])
-
-    def _action_btn_reset(self, *args, **kwargs):
-        self.edited_config_dict = copy.deepcopy(self.config_dict)
-        self._clear_edit()
-        self.tv.delete(*self.tv.get_children())
-        self._init_branch()
-
-    def _action_btn_save(self, *args, **kwargs):
-        pass
-
-    def _clear_edit(self):
-        self.__selected_key = None
-        self.lab_select_status.configure(text='SELECTD: ')
-        self.rbt_specified_val.configure(state='disabled')
-        self.rbt_specified_none.configure(state='disabled')
-        self.rbt_specified_val.select()
-        self.txt_value.delete(0, tk.END)
-        self.txt_value.configure(state='disabled')
-        self.cbb_boolean.set('')
-        self.cbb_boolean.configure(state='disabled')
-        self.btn_change_value.configure(state='disabled')
-
-    def _action_rbt_specified_val(self):
-        self.txt_value.configure(state='normal')
-
-    def _action_rbt_specified_none(self):
-        self.txt_value.configure(state='disabled')
-
-    def _action_btn_change_value(self, *args, **kwargs):
-        selected_key = self.tv.focus()
-        selected_keys = self._extract_tv_key(selected_key)
-        selected_value = self._get_actual_value(selected_keys)
-
-        if isinstance(selected_value, bool):
-            index = self.cbb_boolean.current()
-            edited_value = self.list_value_for_cbb_boolean[index]
-        else:
-            if self.__rbt_specify_var.get():
-                edited_value = self.__edited_selected_value.get()
-                if isinstance(selected_value, int):
-                    edited_value = int(edited_value)
-                elif isinstance(selected_value, float):
-                    edited_value = float(edited_value)
-            else:
-                edited_value = None
-        selected_key = self.tv.focus()
-
-        print('To be value:', edited_value, type(edited_value))
-        print('TV before:', self.tv.set(selected_key))
-        print('Actual before', selected_value, type(selected_value))
-
-        self.tv.set(selected_key, column='Value', value=str(edited_value))
-        self._set_actual_value(keys=selected_keys, set_value=edited_value)
-
-        print('TV after:', self.tv.set(selected_key))
-        print('Actual after', self._get_actual_value(selected_keys), type(self._get_actual_value(selected_keys)))
-
-    def _action_btn_clear(self, *args, **kwargs):
-        self._clear_edit()
-        for i in self.tv.selection():
-            self.tv.selection_remove(i)
-
-    def _action_tk_click_edit(self, *args, **kwargs):
-        selected_key = self.tv.focus()
-        record = self.tv.item(selected_key)
-
-        if len(record['values']) == 0:
-            self._clear_edit()
-        elif record['values'] == self.values_for_key:
-            self._clear_edit()
-        else:
-            selected_keys = self._extract_tv_key(selected_key)
-            selected_value = self._get_actual_value(selected_keys)
-
-            self.lab_select_status.configure(text=f'''SELECTD: {' / '.join(selected_keys)}''')
-            self.txt_value.delete(0, tk.END)
-
-            self.btn_change_value.configure(state='normal')
-            if isinstance(selected_value, bool):
-                self.rbt_specified_val.configure(state='disabled')
-                self.rbt_specified_none.configure(state='disabled')
-                self.rbt_specified_val.select()
-                self.txt_value.configure(state='disabled')
-                self.cbb_boolean.configure(state='readonly')
-                self.cbb_boolean.set(str(selected_value))
-            elif selected_value is None:
-                self.rbt_specified_val.configure(state='normal')
-                self.rbt_specified_none.configure(state='normal')
-                self.rbt_specified_none.select()
-                self.txt_value.configure(state='disabled')
-                self.cbb_boolean.configure(state='disabled')
-                self.cbb_boolean.set('')
-            else:
-                self.rbt_specified_val.configure(state='normal')
-                self.rbt_specified_none.configure(state='normal')
-                self.rbt_specified_val.select()
-                self.txt_value.configure(state='normal')
-                self.cbb_boolean.configure(state='disabled')
-                self.txt_value.insert(index=0,
-                                      string=str(selected_value))
-                self.cbb_boolean.set('')
-
-    def _get_actual_value(self, keys):
-        value = None
-        for key in keys:
-            if str(key).startswith(self.list_key_prefix):
-                key = int(key.split(self.list_key_prefix)[-1])
-            if value is None:
-                value = self.edited_config_dict[key]
-            else:
-                value = value[key]
-        return value
-
-    def _set_actual_value(self, keys, set_value):
-        data = None
-        for key in keys[:-1]:
-            if str(key).startswith(self.list_key_prefix):
-                key = int(key.split(self.list_key_prefix)[-1])
-            if data is None:
-                data = self.edited_config_dict[key]
-            else:
-                data = data[key]
-        data[keys[-1]] = set_value
-
-    def _extract_tv_key(self, key):
-        return key.split('__')
-
-    def _add_brunch(self, root_name: str, config_list: list):
+    def _add_brunch(self,
+                    root_name: str,
+                    config_list: list):
 
         self.tv.insert(parent='',
                        index='end',
@@ -313,10 +207,162 @@ class GUI:
                                        values=values,
                                        open=True)
 
+    def _init_branch(self):
+        rr = DictRecursivelyReader()
+        processed_config_dict = dict()
+        for file_name in self.config_dict:
+            processed_config_dict[file_name] = rr.read(self.config_dict[file_name])
+            self._add_brunch(root_name=file_name,
+                             config_list=processed_config_dict[file_name])
+
+    def _get_actual_value(self, keys):
+        value = None
+        for key in keys:
+            if str(key).startswith(self.list_key_prefix):
+                key = int(key.split(self.list_key_prefix)[-1])
+            if value is None:
+                value = self.edited_config_dict[key]
+            else:
+                value = value[key]
+        return value
+
+    def _set_actual_value(self, keys, set_value):
+        data = None
+        for key in keys[:-1]:
+            if str(key).startswith(self.list_key_prefix):
+                key = int(key.split(self.list_key_prefix)[-1])
+            if data is None:
+                data = self.edited_config_dict[key]
+            else:
+                data = data[key]
+        data[keys[-1]] = set_value
+
+    def _extract_tv_key(self, key):
+        return key.split('__')
+
+    def _clear_edit(self):
+        self.lab_select_status.configure(text='SELECTD: ')
+        self.lab_warning.configure(text='')
+        self.rbt_specified_val.configure(state='disabled')
+        self.rbt_specified_none.configure(state='disabled')
+        self.rbt_specified_val.select()
+        self.txt_value.delete(0, tk.END)
+        self.txt_value.configure(state='disabled')
+        self.cbb_boolean.set('')
+        self.cbb_boolean.configure(state='disabled')
+        self.btn_change_value.configure(state='disabled')
+
+    def _action_btn_change_value(self, *args, **kwargs):
+        selected_key = self.tv.focus()
+        selected_keys = self._extract_tv_key(selected_key)
+        selected_value = self._get_actual_value(selected_keys)
+
+        is_error = False
+
+        if isinstance(selected_value, bool):
+            index = self.cbb_boolean.current()
+            edited_value = self.list_value_for_cbb_boolean[index]
+        else:
+            if self.__rbt_specify_var.get():
+                edited_value = self.__edited_selected_value.get()
+                if isinstance(selected_value, int):
+                    try:
+                        edited_value = int(edited_value)
+                        self.lab_warning.configure(text='')
+                    except ValueError:
+                        is_error = True
+                        self.lab_warning.configure(text='Value must be integer number.')
+                elif isinstance(selected_value, float):
+                    try:
+                        edited_value = float(edited_value)
+                        self.lab_warning.configure(text='')
+                    except ValueError:
+                        is_error = True
+                        self.lab_warning.configure(text='Value must be floating point number.')
+            else:
+                edited_value = None
+
+        if not is_error:
+            print('To be value:', edited_value, type(edited_value))
+            print('TV before:', self.tv.set(selected_key))
+            print('Actual before', selected_value, type(selected_value))
+
+            self.tv.set(selected_key, column='Value', value=str(edited_value))
+            self._set_actual_value(keys=selected_keys, set_value=edited_value)
+
+            print('TV after:', self.tv.set(selected_key))
+            print('Actual after', self._get_actual_value(selected_keys), type(self._get_actual_value(selected_keys)))
+
+    def _action_btn_clear(self, *args, **kwargs):
+        self._clear_edit()
+        for i in self.tv.selection():
+            self.tv.selection_remove(i)
+
+    def _action_btn_save(self, *args, **kwargs):
+        pass
+
+    def _action_btn_undo_all(self, *args, **kwargs):
+        self.edited_config_dict = copy.deepcopy(self.config_dict)
+        self._clear_edit()
+        self.tv.delete(*self.tv.get_children())
+        self._init_branch()
+
+    def _action_btn_reset(self, *args, **kwargs):
+        self.edited_config_dict = copy.deepcopy(self.default_config_dict)
+        self._clear_edit()
+        self.tv.delete(*self.tv.get_children())
+        self._init_branch()
+
+    def _action_rbt_specified_val(self):
+        self.txt_value.configure(state='normal')
+
+    def _action_rbt_specified_none(self):
+        self.txt_value.configure(state='disabled')
+
+    def _action_tk_click_edit(self, *args, **kwargs):
+        selected_key = self.tv.focus()
+        record = self.tv.item(selected_key)
+
+        if len(record['values']) == 0:
+            self._clear_edit()
+        elif record['values'] == self.values_for_key:
+            self._clear_edit()
+        else:
+            selected_keys = self._extract_tv_key(selected_key)
+            selected_value = self._get_actual_value(selected_keys)
+
+            self.lab_select_status.configure(text=f'''SELECTD: {' / '.join(selected_keys)}''')
+            self.txt_value.delete(0, tk.END)
+            self.lab_warning.configure(text='')
+            self.btn_change_value.configure(state='normal')
+            if isinstance(selected_value, bool):
+                self.rbt_specified_val.configure(state='disabled')
+                self.rbt_specified_none.configure(state='disabled')
+                self.rbt_specified_val.select()
+                self.txt_value.configure(state='disabled')
+                self.cbb_boolean.configure(state='readonly')
+                self.cbb_boolean.set(str(selected_value))
+            elif selected_value is None:
+                self.rbt_specified_val.configure(state='normal')
+                self.rbt_specified_none.configure(state='normal')
+                self.rbt_specified_none.select()
+                self.txt_value.configure(state='disabled')
+                self.cbb_boolean.configure(state='disabled')
+                self.cbb_boolean.set('')
+            else:
+                self.rbt_specified_val.configure(state='normal')
+                self.rbt_specified_none.configure(state='normal')
+                self.rbt_specified_val.select()
+                self.txt_value.configure(state='normal')
+                self.cbb_boolean.configure(state='disabled')
+                self.txt_value.insert(index=0,
+                                      string=str(selected_value))
+                self.cbb_boolean.set('')
+
     def run(self):
         self.app.mainloop()
 
 
 if __name__ == '__main__':
-    config_dict = BaseConfigLoader(config_dir='config/').load()
-    GUI(config_dict=config_dict).run()
+    ConfigEditor(config_dir='config/',
+                 default_config_dir='default_config/').run()

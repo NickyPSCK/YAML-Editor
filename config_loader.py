@@ -8,7 +8,7 @@ from yaml.loader import SafeLoader
 
 
 class BaseConfigLoader:
-    '''ConfigLoader
+    '''BaseConfigLoader
 
     :param config_dir: Directory that contains configuration file(s).
     :type config_dir: str
@@ -42,7 +42,8 @@ class BaseConfigLoader:
 
         for key, value in overrides.items():
             if isinstance(value, collections.abc.Mapping) and value:
-                returned = ConfigLoader.deep_update(source.get(key, {}), value)
+                returned = ConfigLoader.deep_update(source.get(key, {}),
+                                                    value)
                 source[key] = returned
             else:
                 source[key] = overrides[key]
@@ -74,7 +75,8 @@ class BaseConfigLoader:
         '''
         config_dicts = dict()
         for config_file_name in self.config_file_names:
-            self.config_file_path = os.path.join(self.config_dir, config_file_name)
+            self.config_file_path = os.path.join(self.config_dir,
+                                                 config_file_name)
             config_dict = self._read_config(self.config_file_path)
             config_dicts[config_file_name.split('.')[0]] = config_dict
         return config_dicts
