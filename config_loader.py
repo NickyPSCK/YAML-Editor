@@ -1,7 +1,9 @@
 import os
-from glob import glob
-import collections
+import copy
+from collections import OrderedDict
+from collections.abc import Mapping
 from typing import Optional, List
+from glob import glob
 
 import yaml
 from yaml.loader import SafeLoader
@@ -41,7 +43,7 @@ class BaseConfigLoader:
         '''
 
         for key, value in overrides.items():
-            if isinstance(value, collections.abc.Mapping) and value:
+            if isinstance(value, Mapping) and value:
                 returned = ConfigLoader.deep_update(source.get(key, {}),
                                                     value)
                 source[key] = returned
@@ -89,6 +91,60 @@ class BaseConfigLoader:
 
         '''
         return self._load()
+
+
+class ConfigMelter:
+    '''ConfigMelter
+    '''
+    def __init__(self):
+        self.list_key_prefix = '-LIST-: '
+        self.__result = list()
+
+    def melt(self,
+             data_dict) -> List[list]:
+        '''Returns unnested structure of input data_dict
+
+        :param data_dict: dictionary to be unnested.
+        :type data_dict: dict
+
+        :rtype: dict
+        :return: Unnested structure of input data_dict
+
+        '''
+        data_dict = copy.deepcopy(data_dict)
+        self.__result = list()
+        self._recursively_melt(data_dict)
+        return self.__result
+
+    def _recursively_melt(self,
+                          data,
+                          state=None):
+        if state is None:
+            state = list()
+        else:
+            state = state
+
+        for key in data:
+            if isinstance(data[key], dict) or isinstance(data[key], list):
+                state.append(key)
+
+                if isinstance(data[key], list):
+                    converted_list = OrderedDict()
+                    for i in range(len(data[key])):
+                        k = f'{self.list_key_prefix}{i}'
+                        converted_list[k] = copy.deepcopy(data[key][i])
+                    data[key] = copy.deepcopy(converted_list)
+
+                self._recursively_melt(data[key],
+                                       state=state)
+                state.pop()
+            else:
+                self.__result.append([state.copy(),
+                                      key,
+                                      data[key]])
+
+                # space = len(state) * '  '
+                # print(f'{space}{key}: {data[key]}, {state}')
 
 
 class ConfigLoader(BaseConfigLoader):
