@@ -36,6 +36,7 @@ class ConfigEditor:
         self.edited_config_dict = copy.deepcopy(self.config_dict)
 
         # Constants and Preset
+        self.selected_key_prefix = 'KEY: '
         self.values_for_key = ['', 'key']
         self.list_key_prefix = '-LIST-: '
         self.list_value_for_cbb_boolean = [True, False]
@@ -91,7 +92,7 @@ class ConfigEditor:
         self.__edited_selected_value = tk.StringVar()
 
         self.lab_select_status = tk.Label(self.frm_edit,
-                                          text='>>> ',
+                                          text=self.selected_key_prefix,
                                           anchor=tk.W)
 
         self.frm_rbt_dtype = ttk.Frame(self.frm_edit)
@@ -152,14 +153,14 @@ class ConfigEditor:
 
         self.btn_change_value = tk.Button(self.frm_btn_change_clear,
                                           text='Change Value',
-                                          width=60,
+                                          width=25,
                                           height=2,
                                           state='disabled',
                                           command=self._action_btn_change_value)
 
         self.btn_clear = tk.Button(self.frm_btn_change_clear,
                                    text='Clear',
-                                   width=60,
+                                   width=25,
                                    height=2,
                                    state='active',
                                    command=self._action_btn_clear)
@@ -187,14 +188,14 @@ class ConfigEditor:
 
         self.btn_undo_all = tk.Button(self.frm_btn_undo_reset,
                                       text='Undo all changed',
-                                      width=60,
+                                      width=25,
                                       height=2,
                                       state='active',
                                       command=self._action_btn_undo_all)
 
         self.btn_reset = tk.Button(self.frm_btn_undo_reset,
                                    text='Load default config',
-                                   width=60,
+                                   width=25,
                                    height=2,
                                    state='active',
                                    command=self._action_btn_reset)
@@ -207,32 +208,33 @@ class ConfigEditor:
                                   command=self._action_btn_save)
 
         self.lab_select_status.pack(side=tk.TOP, fill=tk.X)
+
+        self.frm_rbt_dtype.pack(side=tk.TOP, fill=tk.X, pady=10)
         self.lab_value.pack(side=tk.LEFT)
         self.rbt_dtype_str.pack(side=tk.LEFT, anchor=tk.W)
         self.rbt_dtype_int.pack(side=tk.LEFT, anchor=tk.W)
         self.rbt_dtype_float.pack(side=tk.LEFT, anchor=tk.W)
         self.rbt_dtype_bool.pack(side=tk.LEFT, anchor=tk.W)
         self.rbt_dtype_none.pack(side=tk.LEFT, anchor=tk.W)
-        self.frm_rbt_dtype.pack(side=tk.TOP, fill=tk.X)
 
-        self.frm_rbt_dtype.pack(side=tk.TOP, fill=tk.X)
         self.txt_value.pack(side=tk.TOP, fill=tk.X)
         self.cbb_boolean.pack(side=tk.TOP, fill=tk.X)
         self.lab_warning.pack(side=tk.TOP, fill=tk.X)
 
-        self.frm_btn_change_clear.pack(side=tk.TOP)
+        self.frm_btn_change_clear.pack(side=tk.TOP, fill=tk.X, pady=10)
         self.btn_change_value.pack(side=tk.LEFT)
-        self.btn_clear.pack(side=tk.LEFT)
+        self.btn_clear.pack(side=tk.RIGHT)
 
         self.btn_save.pack(side=tk.BOTTOM, fill=tk.X)
 
-        self.frm_btn_undo_reset.pack(side=tk.BOTTOM)
+        self.frm_btn_undo_reset.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
         self.btn_undo_all.pack(side=tk.LEFT)
-        self.btn_reset.pack(side=tk.LEFT)
+        self.btn_reset.pack(side=tk.RIGHT)
 
         self.lab_output_config_dir.pack(side=tk.BOTTOM, anchor=tk.W)
         self.lab_default_config_dir.pack(side=tk.BOTTOM, anchor=tk.W)
         self.lab_config_dir.pack(side=tk.BOTTOM, anchor=tk.W)
+
         # self.btn_delete_key.pack(side=tk.BOTTOM)
 
         self._clear_edit()
@@ -326,7 +328,7 @@ class ConfigEditor:
 
     def _clear_edit(self):
 
-        self.lab_select_status.configure(text='>>> ')
+        self.lab_select_status.configure(text=self.selected_key_prefix)
         self.lab_warning.configure(text='')
         self.rbt_dtype_str.configure(state='disabled')
         self.rbt_dtype_int.configure(state='disabled')
@@ -357,7 +359,7 @@ class ConfigEditor:
             selected_keys = self._extract_tv_key(selected_key)
             selected_value = self._get_actual_value(selected_keys)
 
-            self.lab_select_status.configure(text=f'''>>> {' / '.join(selected_keys)}''')
+            self.lab_select_status.configure(text=f'''{self.selected_key_prefix }{'/'.join(selected_keys)}''')
             self.txt_value.delete(0, tk.END)
             self.lab_warning.configure(text='')
             self.btn_change_value.configure(state='normal')
@@ -415,7 +417,7 @@ class ConfigEditor:
     def _action_btn_change_value(self, *args, **kwargs):
         selected_key = self.tv.focus()
         selected_keys = self._extract_tv_key(selected_key)
-        selected_value = self._get_actual_value(selected_keys)
+        # selected_value = self._get_actual_value(selected_keys)
 
         is_error = False
         input_type_str = self.__rbt_dtype.get()
@@ -444,16 +446,14 @@ class ConfigEditor:
                 self.lab_warning.configure(text='')
 
         if not is_error:
-            print('To be value:', edited_value, type(edited_value))
-            print('TV before:', self.tv.set(selected_key))
-            print('Actual before', selected_value, type(selected_value))
-
+            # print('To be value:', edited_value, type(edited_value))
+            # print('TV before:', self.tv.set(selected_key))
+            # print('Actual before', selected_value, type(selected_value))
             self.tv.set(selected_key, column='Value', value=str(edited_value))
             self.tv.set(selected_key, column='Type', value=type(edited_value))
             self._set_actual_value(keys=selected_keys, set_value=edited_value)
-
-            print('TV after:', self.tv.set(selected_key))
-            print('Actual after', self._get_actual_value(selected_keys), type(self._get_actual_value(selected_keys)))
+            # print('TV after:', self.tv.set(selected_key))
+            # print('Actual after', self._get_actual_value(selected_keys), type(self._get_actual_value(selected_keys)))
 
     @_make_sure_msg_box(message='Do you want to delete?')
     def _action_btn_delete(self, *args, **kwargs):
@@ -499,6 +499,13 @@ class ConfigEditor:
     def _action_rbt_dtype_bool(self):
         self.txt_value.configure(state='disabled')
         self.cbb_boolean.configure(state='readonly')
+        selected_key = self.tv.focus()
+        selected_keys = self._extract_tv_key(selected_key)
+        selected_value = self._get_actual_value(selected_keys)
+        if isinstance(selected_value, bool):
+            self.cbb_boolean.set(str(selected_value))
+        else:
+            self.cbb_boolean.set(str(True))
 
     def _action_rbt_dtype_none(self):
         self.txt_value.configure(state='disabled')
