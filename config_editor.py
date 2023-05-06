@@ -91,15 +91,15 @@ class ConfigEditor:
         self.__rbt_dtype = tk.StringVar()
         self.__edited_selected_value = tk.StringVar()
 
-        self.lab_select_status = tk.Label(self.frm_edit,
-                                          text=self.selected_key_prefix,
-                                          anchor=tk.W)
+        self.lab_select_status = ttk.Label(self.frm_edit,
+                                           text=self.selected_key_prefix,
+                                           anchor=tk.W)
 
         self.frm_rbt_dtype = ttk.Frame(self.frm_edit)
 
-        self.lab_value = tk.Label(self.frm_rbt_dtype,
-                                  text='Value: ',
-                                  anchor=tk.W)
+        self.lab_value = ttk.Label(self.frm_rbt_dtype,
+                                   text='Value: ',
+                                   anchor=tk.W)
 
         self.rbt_dtype_str = tk.Radiobutton(self.frm_rbt_dtype,
                                             text='string',
@@ -108,104 +108,99 @@ class ConfigEditor:
                                             state='disabled',
                                             command=self._action_rbt_dtype_str_int_float)
 
-        self.rbt_dtype_int = tk.Radiobutton(self.frm_rbt_dtype,
-                                            text='integer',
-                                            variable=self.__rbt_dtype,
-                                            value='integer',
-                                            state='disabled',
-                                            command=self._action_rbt_dtype_str_int_float)
+        self.rbt_dtype_int = ttk.Radiobutton(self.frm_rbt_dtype,
+                                             text='integer',
+                                             variable=self.__rbt_dtype,
+                                             value='integer',
+                                             state='disabled',
+                                             command=self._action_rbt_dtype_str_int_float)
 
-        self.rbt_dtype_float = tk.Radiobutton(self.frm_rbt_dtype,
-                                              text='float',
+        self.rbt_dtype_float = ttk.Radiobutton(self.frm_rbt_dtype,
+                                               text='float',
+                                               variable=self.__rbt_dtype,
+                                               value='float',
+                                               state='disabled',
+                                               command=self._action_rbt_dtype_str_int_float)
+
+        self.rbt_dtype_bool = ttk.Radiobutton(self.frm_rbt_dtype,
+                                              text='bool',
                                               variable=self.__rbt_dtype,
-                                              value='float',
+                                              value='bool',
                                               state='disabled',
-                                              command=self._action_rbt_dtype_str_int_float)
+                                              command=self._action_rbt_dtype_bool)
 
-        self.rbt_dtype_bool = tk.Radiobutton(self.frm_rbt_dtype,
-                                             text='bool',
-                                             variable=self.__rbt_dtype,
-                                             value='bool',
-                                             state='disabled',
-                                             command=self._action_rbt_dtype_bool)
+        self.rbt_dtype_none = ttk.Radiobutton(self.frm_rbt_dtype,
+                                              text='none',
+                                              variable=self.__rbt_dtype,
+                                              value='none',
+                                              state='disabled',
+                                              command=self._action_rbt_dtype_none)
 
-        self.rbt_dtype_none = tk.Radiobutton(self.frm_rbt_dtype,
-                                             text='none',
-                                             variable=self.__rbt_dtype,
-                                             value='none',
-                                             state='disabled',
-                                             command=self._action_rbt_dtype_none)
-
-        self.txt_value = tk.Entry(self.frm_edit,
-                                  textvariable=self.__edited_selected_value,
-                                  state='disabled')
+        self.txt_value = ttk.Entry(self.frm_edit,
+                                   textvariable=self.__edited_selected_value,
+                                   state='disabled')
 
         self.cbb_boolean = ttk.Combobox(self.frm_edit,
                                         values=self.list_value_for_cbb_boolean,
                                         state='disabled')
 
-        self.lab_warning = tk.Label(self.frm_edit,
-                                    text='',
-                                    fg='#f00',
-                                    anchor=tk.CENTER)
+        self.lab_warning = ttk.Label(self.frm_edit,
+                                     text='',
+                                     foreground='#f00',
+                                     anchor=tk.CENTER)
 
         self.frm_btn_change_clear = ttk.Frame(self.frm_edit)
 
-        self.btn_change_value = tk.Button(self.frm_btn_change_clear,
-                                          text='Change Value',
-                                          width=25,
-                                          height=2,
-                                          state='disabled',
-                                          command=self._action_btn_change_value)
+        self.btn_change_value = ttk.Button(self.frm_btn_change_clear,
+                                           text='Change Value',
+                                           state='disabled',
+                                           command=self._action_btn_change_value)
+        self.btn_change_value['width'] = 25
+        # self.btn_change_value['height'] = 2
 
-        self.btn_clear = tk.Button(self.frm_btn_change_clear,
-                                   text='Clear',
-                                   width=25,
-                                   height=2,
-                                   state='active',
-                                   command=self._action_btn_clear)
+        self.btn_clear = ttk.Button(self.frm_btn_change_clear,
+                                    text='Clear',
+                                    state='active',
+                                    command=self._action_btn_clear)
+        self.btn_clear['width'] = 25
 
-        self.btn_delete_key = tk.Button(self.frm_edit,
-                                        text='Delete',
-                                        width=120,
-                                        height=2,
-                                        state='disabled',
-                                        command=self._action_btn_delete)
+        self.btn_delete_key = ttk.Button(self.frm_edit,
+                                         text='Delete',
+                                         state='disabled',
+                                         command=self._action_btn_delete)
+        self.btn_delete_key['width'] = 120
 
-        self.lab_config_dir = tk.Label(self.frm_edit,
-                                       text=f'Config Directory: {self._config_dir}',
-                                       anchor=tk.W)
+        self.lab_config_dir = ttk.Label(self.frm_edit,
+                                        text=f'Config Directory: {self._config_dir}',
+                                        anchor=tk.W)
 
-        self.lab_default_config_dir = tk.Label(self.frm_edit,
-                                               text=f'Default Config Directory: {self._default_config_dir}',
+        self.lab_default_config_dir = ttk.Label(self.frm_edit,
+                                                text=f'Default Config Directory: {self._default_config_dir}',
+                                                anchor=tk.W)
+
+        self.lab_output_config_dir = ttk.Label(self.frm_edit,
+                                               text=f'Output Config Directory: {self._output_config_dir}',
                                                anchor=tk.W)
-
-        self.lab_output_config_dir = tk.Label(self.frm_edit,
-                                              text=f'Output Config Directory: {self._output_config_dir}',
-                                              anchor=tk.W)
 
         self.frm_btn_undo_reset = ttk.Frame(self.frm_edit)
 
-        self.btn_undo_all = tk.Button(self.frm_btn_undo_reset,
-                                      text='Undo all changed',
-                                      width=25,
-                                      height=2,
-                                      state='active',
-                                      command=self._action_btn_undo_all)
+        self.btn_undo_all = ttk.Button(self.frm_btn_undo_reset,
+                                       text='Undo all changed',
+                                       state='active',
+                                       command=self._action_btn_undo_all)
+        self.btn_undo_all['width'] = 25
 
-        self.btn_reset = tk.Button(self.frm_btn_undo_reset,
-                                   text='Load default config',
-                                   width=25,
-                                   height=2,
+        self.btn_reset = ttk.Button(self.frm_btn_undo_reset,
+                                    text='Load default config',
+                                    state='active',
+                                    command=self._action_btn_reset)
+        self.btn_reset['width'] = 25
+
+        self.btn_save = ttk.Button(self.frm_edit,
+                                   text='Save Config',
                                    state='active',
-                                   command=self._action_btn_reset)
-
-        self.btn_save = tk.Button(self.frm_edit,
-                                  text='Save Config',
-                                  width=120,
-                                  height=2,
-                                  state='active',
-                                  command=self._action_btn_save)
+                                   command=self._action_btn_save)
+        self.btn_save['width'] = 120
 
         self.lab_select_status.pack(side=tk.TOP, fill=tk.X)
 
@@ -335,7 +330,7 @@ class ConfigEditor:
         self.rbt_dtype_float.configure(state='disabled')
         self.rbt_dtype_bool.configure(state='disabled')
         self.rbt_dtype_none.configure(state='disabled')
-        self.rbt_dtype_str.select()
+        self.rbt_dtype_str.invoke()
         self.txt_value.delete(0, tk.END)
         self.txt_value.configure(state='disabled')
         self.cbb_boolean.set('')
@@ -372,31 +367,31 @@ class ConfigEditor:
             self.rbt_dtype_none.configure(state='normal')
 
             if isinstance(selected_value, bool):
-                self.rbt_dtype_bool.select()
+                self.rbt_dtype_bool.invoke()
                 self.txt_value.configure(state='disabled')
                 self.cbb_boolean.configure(state='readonly')
                 self.cbb_boolean.set(str(selected_value))
             elif isinstance(selected_value, int):
-                self.rbt_dtype_int.select()
+                self.rbt_dtype_int.invoke()
                 self.txt_value.configure(state='normal')
                 self.cbb_boolean.configure(state='disabled')
                 self.txt_value.insert(index=0,
                                       string=str(selected_value))
                 self.cbb_boolean.set('')
             elif isinstance(selected_value, float):
-                self.rbt_dtype_float.select()
+                self.rbt_dtype_float.invoke()
                 self.txt_value.configure(state='normal')
                 self.cbb_boolean.configure(state='disabled')
                 self.txt_value.insert(index=0,
                                       string=str(selected_value))
                 self.cbb_boolean.set('')
             elif selected_value is None:
-                self.rbt_dtype_none.select()
+                self.rbt_dtype_none.invoke()
                 self.txt_value.configure(state='disabled')
                 self.cbb_boolean.configure(state='disabled')
                 self.cbb_boolean.set('')
             else:  # isinstance(selected_value, str):
-                self.rbt_dtype_str.select()
+                self.rbt_dtype_str.invoke()
                 self.txt_value.configure(state='normal')
                 self.cbb_boolean.configure(state='disabled')
                 self.txt_value.insert(index=0,
