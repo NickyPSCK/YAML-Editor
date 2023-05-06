@@ -15,21 +15,25 @@ class ConfigEditor(tk.Tk):
 
         super().__init__()
 
-        # https://icon-icons.com/icon/YAML-Alt4/131861
-        self.iconbitmap(default='./yaml_icon.ico')
-        self.title('YAML Configuration Editor V.1.0.0')
-        self.protocol('WM_DELETE_WINDOW', self.close_window)
-        self.geometry('1800x900+100+0')
-        self.minsize(1400, 350)
-        self.maxsize(1800, 5000)
-        # self.resizable(0, 0)
+        # ---------------------------------------------------------------------------------------------------
+        # Constants and Preset
+        # ---------------------------------------------------------------------------------------------------
+        self.selected_key_prefix = ' '
+        self.values_for_key = ['', 'key']
+        self.list_key_prefix = '-LIST-: '
+        self.list_value_for_cbb_boolean = [True, False]
 
+        # ---------------------------------------------------------------------------------------------------
+        # Initial Class Attributes
+        # ---------------------------------------------------------------------------------------------------
         self._config_dir = config_dir
         self._config_file_names = config_file_names
         self._output_config_dir = output_config_dir
         self._default_config_dir = default_config_dir
 
+        # ---------------------------------------------------------------------------------------------------
         # Read all config files
+        # ---------------------------------------------------------------------------------------------------
         self.config_dict = BaseConfigLoader(config_dir=self._config_dir,
                                             config_file_names=self._config_file_names).load()
 
@@ -46,17 +50,24 @@ class ConfigEditor(tk.Tk):
 
         self.edited_config_dict = copy.deepcopy(self.config_dict)
 
-        # Constants and Preset
-        self.selected_key_prefix = 'KEY: '
-        self.values_for_key = ['', 'key']
-        self.list_key_prefix = '-LIST-: '
-        self.list_value_for_cbb_boolean = [True, False]
-
+        # ---------------------------------------------------------------------------------------------------
         # Create GUI
+        # ---------------------------------------------------------------------------------------------------
+        self._create_gui_master()
         self._create_gui_frames()
         self._create_gui_inside_frame_tv()
         self._create_gui_inside_frame_edit()
         self._init_branch()
+
+    def _create_gui_master(self):
+        # https://icon-icons.com/icon/YAML-Alt4/131861
+        self.iconbitmap(default='./img/yaml_icon.ico')
+        self.title('YAML Configuration Editor V.1.0.0')
+        self.protocol('WM_DELETE_WINDOW', self.__close_window)
+        self.geometry('1400x900+20+20')
+        self.minsize(1400, 350)
+        self.maxsize(1800, 5000)
+        # self.resizable(0, 0)
 
     def _create_gui_frames(self):
         self.frm_tv = ttk.Frame(self)
@@ -99,22 +110,29 @@ class ConfigEditor(tk.Tk):
         self.__rbt_dtype = tk.StringVar()
         self.__edited_selected_value = tk.StringVar()
 
+        self.lab_key = ttk.Label(self.frm_edit,
+                                 text='Key: ',
+                                 font='Helvetica 9 bold',
+                                 anchor=tk.W)
+
         self.lab_select_status = ttk.Label(self.frm_edit,
+                                           background='#FFFFFF',
                                            text=self.selected_key_prefix,
                                            anchor=tk.W)
 
         self.frm_rbt_dtype = ttk.Frame(self.frm_edit)
 
-        self.lab_value = ttk.Label(self.frm_rbt_dtype,
-                                   text='Value: ',
-                                   anchor=tk.W)
+        self.lab_value_type = ttk.Label(self.frm_rbt_dtype,
+                                        text='Type: ',
+                                        font='Helvetica 9 bold',
+                                        anchor=tk.W)
 
-        self.rbt_dtype_str = tk.Radiobutton(self.frm_rbt_dtype,
-                                            text='string',
-                                            variable=self.__rbt_dtype,
-                                            value='str',
-                                            state='disabled',
-                                            command=self._action_rbt_dtype_str_int_float)
+        self.rbt_dtype_str = ttk.Radiobutton(self.frm_rbt_dtype,
+                                             text='string',
+                                             variable=self.__rbt_dtype,
+                                             value='str',
+                                             state='disabled',
+                                             command=self._action_rbt_dtype_str_int_float)
 
         self.rbt_dtype_int = ttk.Radiobutton(self.frm_rbt_dtype,
                                              text='integer',
@@ -143,6 +161,11 @@ class ConfigEditor(tk.Tk):
                                               value='none',
                                               state='disabled',
                                               command=self._action_rbt_dtype_none)
+
+        self.lab_value = ttk.Label(self.frm_edit,
+                                   text='Value: ',
+                                   font='Helvetica 9 bold',
+                                   anchor=tk.W)
 
         self.txt_value = ttk.Entry(self.frm_edit,
                                    textvariable=self.__edited_selected_value,
@@ -216,16 +239,18 @@ class ConfigEditor(tk.Tk):
                                    command=self._action_btn_save)
         self.btn_save['width'] = 120
 
+        self.lab_key.pack(side=tk.TOP, fill=tk.X)
         self.lab_select_status.pack(side=tk.TOP, fill=tk.X)
 
-        self.frm_rbt_dtype.pack(side=tk.TOP, fill=tk.X, pady=10)
-        self.lab_value.pack(side=tk.LEFT)
+        self.frm_rbt_dtype.pack(side=tk.TOP, fill=tk.X, pady=20)
+        self.lab_value_type.pack(side=tk.TOP, anchor=tk.W)
         self.rbt_dtype_str.pack(side=tk.LEFT, anchor=tk.W)
         self.rbt_dtype_int.pack(side=tk.LEFT, anchor=tk.W)
         self.rbt_dtype_float.pack(side=tk.LEFT, anchor=tk.W)
         self.rbt_dtype_bool.pack(side=tk.LEFT, anchor=tk.W)
         self.rbt_dtype_none.pack(side=tk.LEFT, anchor=tk.W)
 
+        self.lab_value.pack(side=tk.TOP, fill=tk.X, anchor=tk.W)
         self.txt_value.pack(side=tk.TOP, fill=tk.X)
         self.cbb_boolean.pack(side=tk.TOP, fill=tk.X)
         self.lab_warning.pack(side=tk.TOP, fill=tk.X)
@@ -430,40 +455,46 @@ class ConfigEditor(tk.Tk):
             return method_wrapper
         return _make_sure
 
+    def _action_btn_clear(self, *args, **kwargs):
+        self._clear_edit()
+        for i in self.tv.selection():
+            self.tv.selection_remove(i)
+
     @_make_sure_msg_box(message='Do you want to change the value?')
     def _action_btn_change_value(self, *args, **kwargs):
         selected_key = self.tv.focus()
         selected_keys = self._extract_tv_key(selected_key)
         # selected_value = self._get_actual_value(selected_keys)
 
-        is_error = False
         input_type_str = self.__rbt_dtype.get()
         if input_type_str == 'bool':
             index = self.cbb_boolean.current()
             edited_value = self.list_value_for_cbb_boolean[index]
+            is_error = False
         elif input_type_str == 'none':
             edited_value = None
+            is_error = False
         else:
             edited_value = self.__edited_selected_value.get()
             if input_type_str == 'integer':
                 try:
                     edited_value = int(edited_value)
                     self.lab_warning.configure(text='')
+                    is_error = False
                 except ValueError:
-                    is_error = True
                     self.lab_warning.configure(text='Value must be integer number.')
+                    is_error = True
             elif input_type_str == 'float':
                 try:
                     edited_value = float(edited_value)
                     self.lab_warning.configure(text='')
+                    is_error = False
                 except ValueError:
-                    is_error = True
                     self.lab_warning.configure(text='Value must be floating point number.')
+                    is_error = True
             else:
                 self.lab_warning.configure(text='')
-
-        self.btn_undo_all.configure(state='normal')
-        self.btn_save.configure(state='normal')
+                is_error = False
 
         if not is_error:
             # print('To be value:', edited_value, type(edited_value))
@@ -472,25 +503,10 @@ class ConfigEditor(tk.Tk):
             self.tv.set(selected_key, column='Value', value=str(edited_value))
             self.tv.set(selected_key, column='Type', value=type(edited_value))
             self._set_actual_value(keys=selected_keys, set_value=edited_value)
+            self.btn_undo_all.configure(state='normal')
+            self.btn_save.configure(state='normal')
             # print('TV after:', self.tv.set(selected_key))
             # print('Actual after', self._get_actual_value(selected_keys), type(self._get_actual_value(selected_keys)))
-
-    @_make_sure_msg_box(message='Do you want to delete?')
-    def _action_btn_delete(self, *args, **kwargs):
-        selected_key = self.tv.focus()
-        selected_keys = self._extract_tv_key(selected_key)
-        self.tv.delete(selected_key)
-        self._del_actual_value(keys=selected_keys)
-
-        selected_key = self.tv.focus()
-        record = self.tv.item(selected_key)
-        if len(record['values']) == 0:
-            self.btn_delete_key.configure(state='disabled')
-
-    def _action_btn_clear(self, *args, **kwargs):
-        self._clear_edit()
-        for i in self.tv.selection():
-            self.tv.selection_remove(i)
 
     @_make_sure_msg_box(message='Do you want to undo all changed?')
     def _action_btn_undo_all(self, *args, **kwargs):
@@ -506,6 +522,7 @@ class ConfigEditor(tk.Tk):
         self._clear_edit()
         self.tv.delete(*self.tv.get_children())
         self._init_branch()
+        self.btn_undo_all.configure(state='normal')
         self.btn_save.configure(state='normal')
 
     @_make_sure_msg_box(message='Do you want to save config to config files?')
@@ -515,6 +532,18 @@ class ConfigEditor(tk.Tk):
                 yaml.dump(self.edited_config_dict[file_name], f, sort_keys=False)
         self.btn_undo_all.configure(state='disabled')
         self.btn_save.configure(state='disabled')
+
+    @_make_sure_msg_box(message='Do you want to delete?')
+    def _action_btn_delete(self, *args, **kwargs):
+        selected_key = self.tv.focus()
+        selected_keys = self._extract_tv_key(selected_key)
+        self.tv.delete(selected_key)
+        self._del_actual_value(keys=selected_keys)
+
+        selected_key = self.tv.focus()
+        record = self.tv.item(selected_key)
+        if len(record['values']) == 0:
+            self.btn_delete_key.configure(state='disabled')
 
     def _action_rbt_dtype_str_int_float(self):
         self.txt_value.configure(state='normal')
@@ -538,7 +567,7 @@ class ConfigEditor(tk.Tk):
     def run(self):
         self.mainloop()
 
-    def close_window(self):
+    def __close_window(self):
         btn_save_state = self.btn_save.state()
         if len(btn_save_state) == 0:
             save = False
@@ -557,9 +586,3 @@ class ConfigEditor(tk.Tk):
                 self.destroy()
             else:
                 self.btn_save.configure(state='active')
-
-
-if __name__ == '__main__':
-    ConfigEditor(config_dir='example_config/config/',
-                 default_config_dir='example_config/default_config/',
-                 output_config_dir='example_config/edited_config/').run()
