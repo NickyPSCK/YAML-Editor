@@ -196,13 +196,12 @@ class ConfigLoader(BaseConfigLoader):
 
 
 if __name__ == '__main__':
-    # cl = ConfigLoader(config_dir='./config/',
-    #                   running_env='DEV')
-
+    # cl = BaseConfigLoader(config_dir='./config/')
     # CONFIG = cl.load()
     # print(CONFIG)
 
-    cl = BaseConfigLoader(config_dir='./config/')
+    cl = ConfigLoader(config_dir='./config/',
+                      running_env='DEV')
+
     CONFIG = cl.load()
     print(CONFIG)
-
