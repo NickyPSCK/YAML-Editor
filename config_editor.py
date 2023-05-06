@@ -1,12 +1,9 @@
 import copy
 from typing import Optional, List
-
 import tkinter as tk
 from tkinter import ttk, messagebox
-
 import yaml
-
-from config_loader import BaseConfigLoader, ConfigMelter
+from util.config_loader import BaseConfigLoader, ConfigMelter
 
 
 class ConfigEditor(tk.Tk):
