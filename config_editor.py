@@ -19,10 +19,10 @@ class ConfigEditor(tk.Tk):
         self.iconbitmap(default='./yaml_icon.ico')
         self.title('YAML Configuration Editor V.1.0.0')
         self.protocol('WM_DELETE_WINDOW', self.close_window)
-        self.geometry('1920x900+100+100')
+        self.geometry('1800x900+100+0')
+        self.minsize(1400, 350)
+        self.maxsize(1800, 5000)
         # self.resizable(0, 0)
-        # self.minsize(280, 300)
-        # self.maxsize(280, 300)
 
         self._config_dir = config_dir
         self._config_file_names = config_file_names
@@ -33,10 +33,13 @@ class ConfigEditor(tk.Tk):
         self.config_dict = BaseConfigLoader(config_dir=self._config_dir,
                                             config_file_names=self._config_file_names).load()
 
-        self.output_config_dir = output_config_dir
+        if self._output_config_dir is None:
+            self._output_config_dir = config_dir
+        else:
+            self._output_config_dir = output_config_dir
 
         if self._default_config_dir is not None:
-            self.default_config_dict = BaseConfigLoader(config_dir=self._output_config_dir,
+            self.default_config_dict = BaseConfigLoader(config_dir=self._default_config_dir,
                                                         config_file_names=self._config_file_names).load()
         else:
             self.default_config_dict = None
@@ -158,6 +161,7 @@ class ConfigEditor(tk.Tk):
 
         self.btn_change_value = ttk.Button(self.frm_btn_change_clear,
                                            text='Change Value',
+                                           takefocus=False,
                                            state='disabled',
                                            command=self._action_btn_change_value)
         self.btn_change_value['width'] = 25
@@ -165,12 +169,14 @@ class ConfigEditor(tk.Tk):
 
         self.btn_clear = ttk.Button(self.frm_btn_change_clear,
                                     text='Clear',
-                                    state='active',
+                                    takefocus=False,
+                                    state='normal',
                                     command=self._action_btn_clear)
         self.btn_clear['width'] = 25
 
         self.btn_delete_key = ttk.Button(self.frm_edit,
                                          text='Delete',
+                                         takefocus=False,
                                          state='disabled',
                                          command=self._action_btn_delete)
         self.btn_delete_key['width'] = 120
@@ -191,19 +197,22 @@ class ConfigEditor(tk.Tk):
 
         self.btn_undo_all = ttk.Button(self.frm_btn_undo_reset,
                                        text='Undo all changed',
-                                       state='active',
+                                       takefocus=False,
+                                       state='disabled',
                                        command=self._action_btn_undo_all)
         self.btn_undo_all['width'] = 25
 
         self.btn_reset = ttk.Button(self.frm_btn_undo_reset,
                                     text='Load default config',
-                                    state='active',
+                                    takefocus=False,
+                                    state='normal',
                                     command=self._action_btn_reset)
         self.btn_reset['width'] = 25
 
         self.btn_save = ttk.Button(self.frm_edit,
                                    text='Save Config',
-                                   state='active',
+                                   takefocus=False,
+                                   state='normal',
                                    command=self._action_btn_save)
         self.btn_save['width'] = 120
 
@@ -307,7 +316,11 @@ class ConfigEditor(tk.Tk):
                     data = self.edited_config_dict[key]
                 else:
                     data = data[key]
-            data[keys[-1]] = set_value
+            if str(keys[-1]).startswith(self.list_key_prefix):
+                key = int(keys[-1].split(self.list_key_prefix)[-1])
+                data[key] = set_value
+            else:
+                data[keys[-1]] = set_value
 
     def _del_actual_value(self, keys):
         if len(keys) == 1:
@@ -321,7 +334,12 @@ class ConfigEditor(tk.Tk):
                     data = self.edited_config_dict[key]
                 else:
                     data = data[key]
-            del data[keys[-1]]
+
+            if str(keys[-1]).startswith(self.list_key_prefix):
+                key = int(keys[-1].split(self.list_key_prefix)[-1])
+                del data[key]
+            else:
+                del data[keys[-1]]
 
     def _extract_tv_key(self, key):
         return key.split('__')
@@ -342,10 +360,9 @@ class ConfigEditor(tk.Tk):
         self.cbb_boolean.configure(state='disabled')
         self.btn_change_value.configure(state='disabled')
         self.btn_delete_key.configure(state='disabled')
+        self.btn_save.configure(state='disabled')
         if self.default_config_dict is None:
             self.btn_reset.configure(state='disabled')
-        if self.output_config_dir is None:
-            self.btn_save.configure(state='disabled')
 
     def _action_tk_click_edit(self, *args, **kwargs):
         selected_key = self.tv.focus()
@@ -406,7 +423,7 @@ class ConfigEditor(tk.Tk):
     def _make_sure_msg_box(message):
         def _make_sure(class_method):
             def method_wrapper(self, *arg, **kwarg):
-                if messagebox.askokcancel('Warning', message=message):
+                if messagebox.askokcancel(title='Warning', message=message):
                     return class_method(self, *arg, **kwarg)
                 else:
                     pass
@@ -445,6 +462,9 @@ class ConfigEditor(tk.Tk):
             else:
                 self.lab_warning.configure(text='')
 
+        self.btn_undo_all.configure(state='normal')
+        self.btn_save.configure(state='normal')
+
         if not is_error:
             # print('To be value:', edited_value, type(edited_value))
             # print('TV before:', self.tv.set(selected_key))
@@ -472,18 +492,13 @@ class ConfigEditor(tk.Tk):
         for i in self.tv.selection():
             self.tv.selection_remove(i)
 
-    @_make_sure_msg_box(message='Do you want to save config to config files?')
-    def _action_btn_save(self, *args, **kwargs):
-        for file_name in self.edited_config_dict:
-            with open(f'{self.output_config_dir}{file_name}.yaml', 'w') as f:
-                yaml.dump(self.edited_config_dict[file_name], f, sort_keys=False)
-
     @_make_sure_msg_box(message='Do you want to undo all changed?')
     def _action_btn_undo_all(self, *args, **kwargs):
         self.edited_config_dict = copy.deepcopy(self.config_dict)
         self._clear_edit()
         self.tv.delete(*self.tv.get_children())
         self._init_branch()
+        self.btn_undo_all.configure(state='disabled')
 
     @_make_sure_msg_box(message='Do you want to reset to default config?')
     def _action_btn_reset(self, *args, **kwargs):
@@ -491,6 +506,15 @@ class ConfigEditor(tk.Tk):
         self._clear_edit()
         self.tv.delete(*self.tv.get_children())
         self._init_branch()
+        self.btn_save.configure(state='normal')
+
+    @_make_sure_msg_box(message='Do you want to save config to config files?')
+    def _action_btn_save(self, *args, **kwargs):
+        for file_name in self.edited_config_dict:
+            with open(f'{self._output_config_dir}{file_name}.yaml', 'w') as f:
+                yaml.dump(self.edited_config_dict[file_name], f, sort_keys=False)
+        self.btn_undo_all.configure(state='disabled')
+        self.btn_save.configure(state='disabled')
 
     def _action_rbt_dtype_str_int_float(self):
         self.txt_value.configure(state='normal')
@@ -514,9 +538,25 @@ class ConfigEditor(tk.Tk):
     def run(self):
         self.mainloop()
 
-    @_make_sure_msg_box(message='Do you want to close this program?')
     def close_window(self):
-        self.destroy()
+        btn_save_state = self.btn_save.state()
+        if len(btn_save_state) == 0:
+            save = False
+        elif btn_save_state[0] == 'active':
+            save = False
+        elif btn_save_state[0] == 'disabled':
+            save = True
+        else:
+            save = True
+
+        if save:
+            self.destroy()
+        else:
+            if messagebox.askokcancel(title='Warning',
+                                      message='Do you want to close this program without saving?'):
+                self.destroy()
+            else:
+                self.btn_save.configure(state='active')
 
 
 if __name__ == '__main__':
