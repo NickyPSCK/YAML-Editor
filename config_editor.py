@@ -9,27 +9,38 @@ import yaml
 from config_loader import BaseConfigLoader, ConfigMelter
 
 
-class ConfigEditor:
+class ConfigEditor(tk.Tk):
     def __init__(self,
                  config_dir: str,
                  config_file_names: Optional[List[str]] = None,
                  output_config_dir: Optional[str] = None,
-                 default_config_dir: Optional[str] = None,
-                 default_config_file_names: Optional[List[str]] = None):
+                 default_config_dir: Optional[str] = None):
+
+        super().__init__()
+
+        # https://icon-icons.com/icon/YAML-Alt4/131861
+        self.iconbitmap(default='./yaml_icon.ico')
+        self.title('YAML Configuration Editor V.1.0.0')
+        self.protocol('WM_DELETE_WINDOW', self.close_window)
+        self.geometry('1920x900+100+100')
+        # self.resizable(0, 0)
+        # self.minsize(280, 300)
+        # self.maxsize(280, 300)
 
         self._config_dir = config_dir
+        self._config_file_names = config_file_names
         self._output_config_dir = output_config_dir
         self._default_config_dir = default_config_dir
 
         # Read all config files
         self.config_dict = BaseConfigLoader(config_dir=self._config_dir,
-                                            config_file_names=config_file_names).load()
+                                            config_file_names=self._config_file_names).load()
 
         self.output_config_dir = output_config_dir
 
         if self._default_config_dir is not None:
             self.default_config_dict = BaseConfigLoader(config_dir=self._output_config_dir,
-                                                        config_file_names=default_config_file_names).load()
+                                                        config_file_names=self._config_file_names).load()
         else:
             self.default_config_dict = None
 
@@ -42,20 +53,17 @@ class ConfigEditor:
         self.list_value_for_cbb_boolean = [True, False]
 
         # Create GUI
-        self.app = tk.Tk()
-        self.app.title('YAML Configuration Editor V.1.0.0')
-        self.app.geometry('1920x900')
         self._create_gui_frames()
         self._create_gui_inside_frame_tv()
         self._create_gui_inside_frame_edit()
         self._init_branch()
 
     def _create_gui_frames(self):
-        self.frm_tv = ttk.Frame(self.app)
+        self.frm_tv = ttk.Frame(self)
         self.frm_tv.pack(side=tk.LEFT,
                          fill=tk.X)
 
-        self.frm_edit = ttk.Frame(self.app)
+        self.frm_edit = ttk.Frame(self)
         self.frm_edit.pack(side=tk.LEFT,
                            fill=tk.BOTH,
                            padx=20,
@@ -507,7 +515,11 @@ class ConfigEditor:
         self.cbb_boolean.configure(state='disabled')
 
     def run(self):
-        self.app.mainloop()
+        self.mainloop()
+
+    @_make_sure_msg_box(message='Do you want to close this program?')
+    def close_window(self):
+        self.destroy()
 
 
 if __name__ == '__main__':
