@@ -1,2 +1,22 @@
 # YAML Editor
 
+## Introduction
+YAML Editor is GUI YAML Configuration editor.
+
+The objective of this sourcecode is to be a part of the python projects that need GUI for end-user to edit the configuration by them self without editing directly to YAML file.
+
+The GUI is developed using Tkinter.
+
+### Tutorial
+1. Clone this repository.
+2. Install all dependencies
+3. run "example.py" >> "python example.py"
+
+### Dependencies
+scikit-learn requires:
+ - Python (>= 3.8)
+ - PyYAML (>= 5.3.1)
+
+ ## Reference
+ - Icon: https://icon-icons.com/icon/YAML-Alt4/131861
+ - Example YAML: https://spacelift.io/blog/yaml
