@@ -18,7 +18,7 @@ class ConfigEditor(tk.Tk):
         # ---------------------------------------------------------------------------------------------------
         # Constants and Preset
         # ---------------------------------------------------------------------------------------------------
-        self.selected_key_prefix = ' '
+        self.key_seperator = '/'
         self.values_for_key = ['', 'key']
         self.list_key_prefix = '-LIST-: '
         self.list_value_for_cbb_boolean = [True, False]
@@ -66,7 +66,8 @@ class ConfigEditor(tk.Tk):
         self.protocol('WM_DELETE_WINDOW', self.__close_window)
         self.geometry('1400x900+20+20')
         self.minsize(1400, 350)
-        self.maxsize(1800, 5000)
+        # self.maxsize(1800, 5000)
+        self.maxsize(None, None)
         # self.resizable(0, 0)
 
     def _create_gui_frames(self):
@@ -108,17 +109,21 @@ class ConfigEditor(tk.Tk):
 
     def _create_gui_inside_frame_edit(self):
         self.__rbt_dtype = tk.StringVar()
-        self.__edited_selected_value = tk.StringVar()
+        self.txt_value_str_var = tk.StringVar()
+        self.txt_select_status_str_var = tk.StringVar()
+
+        self.style = ttk.Style()
+        self.style.configure('big.TButton', font=(None, 11))
 
         self.lab_key = ttk.Label(self.frm_edit,
                                  text='Key: ',
                                  font='Helvetica 9 bold',
                                  anchor=tk.W)
 
-        self.lab_select_status = ttk.Label(self.frm_edit,
-                                           background='#FFFFFF',
-                                           text=self.selected_key_prefix,
-                                           anchor=tk.W)
+        self.txt_select_status = ttk.Entry(self.frm_edit,
+                                           text='',
+                                           textvariable=self.txt_select_status_str_var,
+                                           state='readonly')
 
         self.frm_rbt_dtype = ttk.Frame(self.frm_edit)
 
@@ -168,7 +173,7 @@ class ConfigEditor(tk.Tk):
                                    anchor=tk.W)
 
         self.txt_value = ttk.Entry(self.frm_edit,
-                                   textvariable=self.__edited_selected_value,
+                                   textvariable=self.txt_value_str_var,
                                    state='disabled')
 
         self.cbb_boolean = ttk.Combobox(self.frm_edit,
@@ -186,7 +191,8 @@ class ConfigEditor(tk.Tk):
                                            text='Change Value',
                                            takefocus=False,
                                            state='disabled',
-                                           command=self._action_btn_change_value)
+                                           command=self._action_btn_change_value,
+                                           style='big.TButton')
         self.btn_change_value['width'] = 25
         # self.btn_change_value['height'] = 2
 
@@ -194,14 +200,16 @@ class ConfigEditor(tk.Tk):
                                     text='Clear',
                                     takefocus=False,
                                     state='normal',
-                                    command=self._action_btn_clear)
+                                    command=self._action_btn_clear,
+                                    style='big.TButton')
         self.btn_clear['width'] = 25
 
         self.btn_delete_key = ttk.Button(self.frm_edit,
                                          text='Delete',
                                          takefocus=False,
                                          state='disabled',
-                                         command=self._action_btn_delete)
+                                         command=self._action_btn_delete,
+                                         style='big.TButton')
         self.btn_delete_key['width'] = 120
 
         self.lab_config_dir = ttk.Label(self.frm_edit,
@@ -219,28 +227,31 @@ class ConfigEditor(tk.Tk):
         self.frm_btn_undo_reset = ttk.Frame(self.frm_edit)
 
         self.btn_undo_all = ttk.Button(self.frm_btn_undo_reset,
-                                       text='Undo all changed',
+                                       text='Undo All',
                                        takefocus=False,
                                        state='disabled',
-                                       command=self._action_btn_undo_all)
+                                       command=self._action_btn_undo_all,
+                                       style='big.TButton')
         self.btn_undo_all['width'] = 25
 
         self.btn_reset = ttk.Button(self.frm_btn_undo_reset,
-                                    text='Load default config',
+                                    text='Reset to Default',
                                     takefocus=False,
                                     state='normal',
-                                    command=self._action_btn_reset)
+                                    command=self._action_btn_reset,
+                                    style='big.TButton')
         self.btn_reset['width'] = 25
 
         self.btn_save = ttk.Button(self.frm_edit,
                                    text='Save Config',
                                    takefocus=False,
                                    state='normal',
-                                   command=self._action_btn_save)
-        self.btn_save['width'] = 120
+                                   command=self._action_btn_save,
+                                   style='big.TButton')
+        self.btn_save['width'] = 1000
 
         self.lab_key.pack(side=tk.TOP, fill=tk.X)
-        self.lab_select_status.pack(side=tk.TOP, fill=tk.X)
+        self.txt_select_status.pack(side=tk.TOP, fill=tk.X)
 
         self.frm_rbt_dtype.pack(side=tk.TOP, fill=tk.X, pady=20)
         self.lab_value_type.pack(side=tk.TOP, anchor=tk.W)
@@ -369,9 +380,8 @@ class ConfigEditor(tk.Tk):
     def _extract_tv_key(self, key):
         return key.split('__')
 
-    def _clear_edit(self):
-
-        self.lab_select_status.configure(text=self.selected_key_prefix)
+    def _clear_edit(self, reset_save_btn=True):
+        self.txt_select_status_str_var.set('')
         self.lab_warning.configure(text='')
         self.rbt_dtype_str.configure(state='disabled')
         self.rbt_dtype_int.configure(state='disabled')
@@ -379,13 +389,14 @@ class ConfigEditor(tk.Tk):
         self.rbt_dtype_bool.configure(state='disabled')
         self.rbt_dtype_none.configure(state='disabled')
         self.rbt_dtype_str.invoke()
-        self.txt_value.delete(0, tk.END)
+        self.txt_value_str_var.set('')
         self.txt_value.configure(state='disabled')
         self.cbb_boolean.set('')
         self.cbb_boolean.configure(state='disabled')
         self.btn_change_value.configure(state='disabled')
         self.btn_delete_key.configure(state='disabled')
-        self.btn_save.configure(state='disabled')
+        if reset_save_btn:
+            self.btn_save.configure(state='disabled')
         if self.default_config_dict is None:
             self.btn_reset.configure(state='disabled')
 
@@ -393,16 +404,15 @@ class ConfigEditor(tk.Tk):
         selected_key = self.tv.focus()
         record = self.tv.item(selected_key)
         if len(record['values']) == 0:
-            self._clear_edit()
+            self._clear_edit(reset_save_btn=False)
         elif record['values'] == self.values_for_key:
-            self._clear_edit()
+            self._clear_edit(reset_save_btn=False)
             self.btn_delete_key.configure(state='normal')
         else:
             selected_keys = self._extract_tv_key(selected_key)
             selected_value = self._get_actual_value(selected_keys)
-
-            self.lab_select_status.configure(text=f'''{self.selected_key_prefix }{'/'.join(selected_keys)}''')
-            self.txt_value.delete(0, tk.END)
+            self.txt_select_status_str_var.set(f'''{self.key_seperator.join(selected_keys)}''')
+            self.txt_value_str_var.set('')
             self.lab_warning.configure(text='')
             self.btn_change_value.configure(state='normal')
             self.btn_delete_key.configure(state='normal')
@@ -422,15 +432,13 @@ class ConfigEditor(tk.Tk):
                 self.rbt_dtype_int.invoke()
                 self.txt_value.configure(state='normal')
                 self.cbb_boolean.configure(state='disabled')
-                self.txt_value.insert(index=0,
-                                      string=str(selected_value))
+                self.txt_value_str_var.set(str(selected_value))
                 self.cbb_boolean.set('')
             elif isinstance(selected_value, float):
                 self.rbt_dtype_float.invoke()
                 self.txt_value.configure(state='normal')
                 self.cbb_boolean.configure(state='disabled')
-                self.txt_value.insert(index=0,
-                                      string=str(selected_value))
+                self.txt_value_str_var.set(str(selected_value))
                 self.cbb_boolean.set('')
             elif selected_value is None:
                 self.rbt_dtype_none.invoke()
@@ -441,8 +449,7 @@ class ConfigEditor(tk.Tk):
                 self.rbt_dtype_str.invoke()
                 self.txt_value.configure(state='normal')
                 self.cbb_boolean.configure(state='disabled')
-                self.txt_value.insert(index=0,
-                                      string=str(selected_value))
+                self.txt_value_str_var.set(str(selected_value))
                 self.cbb_boolean.set('')
 
     def _make_sure_msg_box(message):
@@ -456,7 +463,7 @@ class ConfigEditor(tk.Tk):
         return _make_sure
 
     def _action_btn_clear(self, *args, **kwargs):
-        self._clear_edit()
+        self._clear_edit(reset_save_btn=False)
         for i in self.tv.selection():
             self.tv.selection_remove(i)
 
@@ -475,7 +482,7 @@ class ConfigEditor(tk.Tk):
             edited_value = None
             is_error = False
         else:
-            edited_value = self.__edited_selected_value.get()
+            edited_value = self.txt_value_str_var.get()
             if input_type_str == 'integer':
                 try:
                     edited_value = int(edited_value)
