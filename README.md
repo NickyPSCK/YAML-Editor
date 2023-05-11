@@ -7,7 +7,7 @@ The objective of this sourcecode is to be a part of the python projects that nee
 
 The GUI is developed using Tkinter.
 
-![screenshot](https://github.com/NickyPSCK/YAML-Editor/blob/42fdb95b67fd6160786d8a9acab6a0256b6c4dde/img/screenshot.png)
+![screenshot](img/screenshot.png)
 
 ## Tutorial
 1. Clone/Download this repository.
