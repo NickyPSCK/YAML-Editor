@@ -238,18 +238,25 @@ class ConfigEditor(tk.Tk):
                                          style='big.TButton')
         self.btn_delete_key['width'] = 120
 
-        self.lab_config_dir = ttk.Label(self.frm_edit,
-                                        text=f'Config Directory: {self._config_dir}',
+        self.frm_dir_status = ttk.Frame(self.frm_edit)
+
+        self.lab_topic_dir = ttk.Label(self.frm_dir_status,
+                                       text='Directory: ',
+                                       anchor=tk.W,
+                                       style='bigbold.TLabel')
+
+        self.lab_config_dir = ttk.Label(self.frm_dir_status,
+                                        text=f'- Config: {self._config_dir}',
                                         anchor=tk.W,
                                         style='big.TLabel')
 
-        self.lab_default_config_dir = ttk.Label(self.frm_edit,
-                                                text=f'Default Config Directory: {self._default_config_dir}',
+        self.lab_default_config_dir = ttk.Label(self.frm_dir_status,
+                                                text=f'- Default Config: {self._default_config_dir}',
                                                 anchor=tk.W,
                                                 style='big.TLabel')
 
-        self.lab_output_config_dir = ttk.Label(self.frm_edit,
-                                               text=f'Output Config Directory: {self._output_config_dir}',
+        self.lab_output_config_dir = ttk.Label(self.frm_dir_status,
+                                               text=f'- Output Config: {self._output_config_dir}',
                                                anchor=tk.W,
                                                style='big.TLabel')
 
@@ -305,9 +312,11 @@ class ConfigEditor(tk.Tk):
         self.btn_undo_all.pack(side=tk.LEFT)
         self.btn_reset.pack(side=tk.RIGHT)
 
-        self.lab_output_config_dir.pack(side=tk.BOTTOM, anchor=tk.W)
-        self.lab_default_config_dir.pack(side=tk.BOTTOM, anchor=tk.W)
-        self.lab_config_dir.pack(side=tk.BOTTOM, anchor=tk.W)
+        self.frm_dir_status.pack(side=tk.BOTTOM, fill=tk.X, pady=20)
+        self.lab_topic_dir.pack(side=tk.TOP, anchor=tk.W)
+        self.lab_config_dir.pack(side=tk.TOP, anchor=tk.W)
+        self.lab_default_config_dir.pack(side=tk.TOP, anchor=tk.W)
+        self.lab_output_config_dir.pack(side=tk.TOP, anchor=tk.W)
 
         # self.btn_delete_key.pack(side=tk.BOTTOM)
 
