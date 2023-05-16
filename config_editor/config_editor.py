@@ -81,7 +81,7 @@ class ConfigEditor(tk.Tk):
         self.title('YAML Configuration Editor V.1.0.0')
         self.protocol('WM_DELETE_WINDOW', self.__close_window)
         self.geometry('1450x900+20+20')
-        self.minsize(1400, 350)
+        self.minsize(1400, 650)
         # self.maxsize(1800, 5000)
         self.maxsize(None, None)
         # self.resizable(0, 0)

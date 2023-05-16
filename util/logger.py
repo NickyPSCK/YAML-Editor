@@ -10,7 +10,8 @@ class Formatter(logging.Formatter):
     '''
     def __init__(self,
                  fmt=None,
-                 datefmt=None, style='%',
+                 datefmt=None,
+                 style='%',
                  timezone='Asia/Bangkok'):
         logging.Formatter.__init__(self,
                                    fmt=fmt,
