@@ -2,7 +2,7 @@ import os
 import copy
 from collections import OrderedDict
 from collections.abc import Mapping
-from typing import Optional, List
+from typing import Optional, Literal, List
 from glob import glob
 
 import yaml
@@ -154,7 +154,7 @@ class ConfigLoader(BaseConfigLoader):
     :type config_dir: str
 
     :param running_env: Running environment.
-    :type running_env: str, optional, defaults to  'DEV'
+    :type running_env: Literal['DEV', 'NON_PROD', 'PROD'], optional, defaults to 'DEV'
 
     :param config_file_names: List of configuration file(s) to be read.
                               If None, read all configuration files.
@@ -163,7 +163,7 @@ class ConfigLoader(BaseConfigLoader):
     '''
     def __init__(self,
                  config_dir: str,
-                 running_env: Optional[str] = 'DEV',
+                 running_env: Optional[Literal['DEV', 'NON_PROD', 'PROD']] = 'DEV',
                  config_file_names: Optional[List[str]] = None):
 
         super().__init__(config_dir=config_dir,

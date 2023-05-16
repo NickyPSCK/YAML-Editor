@@ -1,24 +1,34 @@
 import os
 import logging
 import datetime
-from typing import Optional
+from typing import Optional, Literal
 import pytz
 
 
 class Formatter(logging.Formatter):
     '''override logging.Formatter to use an aware datetime object.
     '''
-    def __init__(self, fmt=None, datefmt=None, style='%', timezone='Asia/Bangkok'):
-        logging.Formatter.__init__(self, fmt=fmt, datefmt=datefmt, style=style)
+    def __init__(self,
+                 fmt=None,
+                 datefmt=None, style='%',
+                 timezone='Asia/Bangkok'):
+        logging.Formatter.__init__(self,
+                                   fmt=fmt,
+                                   datefmt=datefmt,
+                                   style=style)
         self.timezone = timezone
 
-    def converter(self, timestamp):
-        dt = datetime.datetime.fromtimestamp(timestamp, tz=pytz.timezone('utc'))
+    def converter(self,
+                  timestamp):
+        dt = datetime.datetime.fromtimestamp(timestamp,
+                                             tz=pytz.timezone('utc'))
         tzinfo = pytz.timezone(self.timezone)
         dt = dt.astimezone(tzinfo)
         return dt
 
-    def formatTime(self, record, datefmt=None):
+    def formatTime(self,
+                   record,
+                   datefmt=None):
         dt = self.converter(record.created)
         if datefmt:
             s = dt.strftime(datefmt)
@@ -37,7 +47,7 @@ class LogCollector():
     :type logger_name: str
 
     :param environment: Running environment.
-    :type environment: str, optional, defaults to  'DEV'
+    :type environment: Literal['DEV', 'NON_PROD', 'PROD'], optional, defaults to  'DEV'
 
     :param time_zone: Time zone to be shown in the log, check possible value in pytz.all_timezones.
     :type time_zone: str, optional, defaults to 'Asia/Bangkok'
@@ -65,7 +75,7 @@ class LogCollector():
 
     def __init__(self,
                  logger_name: str,
-                 environment: Optional[str] = 'DEV',
+                 environment: Optional[Literal['DEV', 'NON_PROD', 'PROD']] = 'DEV',
                  time_zone: Optional[str] = 'Asia/Bangkok',
                  print_log: Optional[bool] = True,
                  write_log: Optional[bool] = False,
