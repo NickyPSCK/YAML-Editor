@@ -359,8 +359,8 @@ class ConfigEditor(tk.Tk):
     def _init_branch(self):
         cm = ConfigMelter()
         processed_config_dict = dict()
-        for file_name in self.config_dict:
-            processed_config_dict[file_name] = cm.melt(self.config_dict[file_name])
+        for file_name in self.edited_config_dict:
+            processed_config_dict[file_name] = cm.melt(self.edited_config_dict[file_name])
             self._add_brunch(root_name=file_name,
                              config_list=processed_config_dict[file_name])
 
